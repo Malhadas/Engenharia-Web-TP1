@@ -66,9 +66,3 @@ class Message < Object
   end
 
 end
-
-#m = Message.new(Message.HELLO,
-#                'Server',
- #               'Client',
-  #              [''])
-#puts(m.to_string)

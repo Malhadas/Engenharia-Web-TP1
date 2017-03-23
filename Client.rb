@@ -9,6 +9,10 @@ class Client < Object
     @xdk      = Xdk.new
     puts 'Write your ID'
     @id       = STDIN.gets.chop
+    puts 'Write your latitude'
+    @latitude       = STDIN.gets.chop
+    puts 'Write your longitude'
+    @longitude       = STDIN.gets.chop
     @debug    = debug
     @hostname = hostname
     @port     = port
@@ -30,16 +34,16 @@ class Client < Object
                     send_message(Message.new(Message.REGISTER,
                                              'Client',
                                              'Server',
-                                             [@id.to_s]
+                                             [@id.to_s, @latitude.to_s, @longitude.to_s]
                                             )
                                  ) # Send a Register Request
 
                when Message.REGISTER
-                 case (message[3].include? 'OK')
-                   when true
+                 case (message[3].strip)
+                   when 'OK'
                      puts('Register Success')
                      sending_menu
-                   when false
+                   when 'KO'
                      puts('Register Failure. Closing.')
                      @socket.close  # Close the socket when done
                  end
@@ -115,7 +119,7 @@ class Client < Object
       send_message(Message.new(Message.READING,
                              'Client',
                              'Server',
-                             [@id.to_s,identifier,value.to_s]
+                             [@id.to_s,identifier,value.to_s, get_current_time, @latitude.to_s, @longitude.to_s]
                              )
                  )
       sleep(time) #wait for the specified seconds
@@ -133,6 +137,11 @@ class Client < Object
     message
   end
 
+  def get_current_time
+    date = Time.new
+    #get date in format -> YYYY-MM-DD HH:MM:SS.SSS
+    return date.year.to_s + '-' + date.month.to_s + '-' + date.day.to_s + ' ' + date.hour.to_s + ':' + date.min.to_s + ':' + date.sec.to_s + ':' + '000'
+  end
 
 end
 

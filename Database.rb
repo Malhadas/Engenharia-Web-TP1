@@ -3,9 +3,9 @@ class Database < Object
   require 'sqlite3'
   require_relative 'menu'
 
-  def initialize
+  def initialize(path='DataBase.db')
     #Connect to database
-    @db = SQLite3::Database.new('DataBase.db')
+    @db = SQLite3::Database.new(path)
     create_specific_database_TP1
   end
 
@@ -45,15 +45,18 @@ class Database < Object
                               PRIMARY KEY (client_id, read_date, type)')
 
     create_table('clients' , 'client_id SMALLINT NOT NULL PRIMARY KEY,
+                              latitude REAL,
+                              longitude REAL,
                               last_login_date TEXT'
                 )
 
   end
 
-  def insert_or_replace_client(id, date)
-    insert_or_replace('clients',' (client_id, last_login_date) VALUES ('+id+", \""+date+"\")")
+  def insert_or_replace_client(id, date, latitude, longitude)
+    insert_or_replace('clients',' (client_id, latitude, longitude, last_login_date) VALUES ('+id+', '+latitude+', '+longitude+", \""+date+"\")")
     return 'OK'
-    rescue SQLite3::Exception
+  rescue SQLite3::Exception => e
+      puts e
       return 'KO'
   end
 
@@ -62,7 +65,7 @@ class Database < Object
   end
 
   def all_clients
-    return Menu.list("| ALL CLIENTS\n| -----------\n| Client ID", execute_query('SELECT (client_id) FROM clients;'))
+    return Menu.list("| ALL CLIENTS\n| -----------\n| Client ID, latitude, longitude", execute_query('SELECT client_id, latitude, longitude FROM clients;'))
   end
 
   def client_readings(id)
@@ -77,26 +80,14 @@ class Database < Object
                     )
   end
 
+  def count_last_readings(id)
+    return execute_query('SELECT COUNT(*) FROM readings WHERE client_id='+id+' AND (read_date >= (SELECT (last_login_date) FROM clients WHERE client_id = '+id+'))')
+  end
+
   #def closeDB
    # ensure
     #  @db.close if @db
   #end
 
 end
-
-#def get_current_time(i)
- # date = Time.new
-  #get date in format -> YYYY-MM-DD HH:MM:SS.SSS
-  #return date.year.to_s + '-' + date.month.to_s + '-' + date.day.to_s + ' ' + date.hour.to_s + ':' + date.min.to_s + ':' + date.sec.to_s + ':' + i
-#end
-
-#d = Database.new
-#puts d.insert_or_replace_client('1', get_current_time('000'))
-#puts 'ola2'
-#puts d.all_clients
-#d.insert_reading('1', get_current_time('000'), '2', 'temperature')
-#d.insert_reading('1', get_current_time('111'), '3', 'acoustic')
-#puts d.client_readings('1')
-#puts d.last_readings('1')
-#d.closeDB
 

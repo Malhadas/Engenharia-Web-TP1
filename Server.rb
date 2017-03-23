@@ -41,10 +41,11 @@ class Server < Object
         case message[0]
 
                when Message.REGISTER
+                 args = message[3].strip.split('::')
                  send_message(client, Message.new(Message.REGISTER,
                                                   'Server',
                                                   'Client',
-                                                  [@database.insert_or_replace_client(message[3].strip, get_current_time)]
+                                                  [@database.insert_or_replace_client(args[0], get_current_time, args[1],args[2])]
                               )
                  ) # Send Register success or failure
 
@@ -72,7 +73,7 @@ class Server < Object
                  send_message(client, Message.new(Message.CLOSE,
                                                   'Server',
                                                   'Client',
-                                                  [@database.last_readings(message[3].strip)]
+                                                  [@database.last_readings(message[3].strip)+"\nNumber of Readings="+@database.count_last_readings(message[3].strip)]
                                                   )
                               ) # Send Closing remarks
 
@@ -81,10 +82,12 @@ class Server < Object
                   case res[1]
                     when 'temperature'
                       puts '--> Received Temperature reading from client #'+res[0]+', Value='+res[2]+'ºC'
-                      @database.insert_reading(res[0], get_current_time, res[2], 'temperature')
+                      puts '    Value Read on: '+res[3]+'from Latitude='+res[4]+'and Longitude'+res[5]
+                      @database.insert_reading(res[0], res[3], res[2], 'temperature')
                     when 'acoustic'
                       puts '--> Received Acoustic reading from client #'+res[0]+', Value='+res[2]+'Db'
-                      @database.insert_reading(res[0], get_current_time, res[2], 'acoustic')
+                      puts '    Value Read on: '+res[3]+'from Latitude='+res[4]+'and Longitude'+res[5]
+                      @database.insert_reading(res[0], res[3], res[2], 'acoustic')
                   end
              end
       end
